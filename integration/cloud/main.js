@@ -1,5 +1,7 @@
 /* global Parse */
-Parse.Cloud.define("bar", function(request) {
+const MySubclass = require('../test/MySubclass');
+
+Parse.Cloud.define("bar", function (request) {
   if (request.params.key2 === "value1") {
     return 'Foo';
   } else {
@@ -12,6 +14,10 @@ Parse.Cloud.define('TestFetchFromLocalDatastore', function (request) {
   object.id = request.params.id;
   object.set('foo', 'changed');
   return object.save();
+});
+
+Parse.Cloud.define('QuerySubclassObjects', async function () {
+  return new Parse.Query(MySubclass).find();
 });
 
 Parse.Cloud.define('UpdateUser', function (request) {

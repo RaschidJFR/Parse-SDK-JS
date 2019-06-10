@@ -4,6 +4,7 @@ const assert = require('assert');
 const clear = require('./clear');
 const Parse = require('../../node');
 const sleep = require('./sleep');
+const MySubclass = require('./MySubclass');
 
 describe('Parse Cloud', () => {
   beforeAll((done) => {
@@ -19,6 +20,31 @@ describe('Parse Cloud', () => {
       assert.equal('Foo', result);
       done();
     }).catch(done.fail);
+  });
+
+  it('run function on subclass', async (done) => {
+    const defaultObject = new MySubclass();
+    await defaultObject.save();
+
+    let results = await Parse.Cloud.run('QuerySubclassObjects');
+    assert.notEqual(results.length, 0);
+
+    let fetchedObject = results.find(item => item.objectId == defaultObject.objectId);
+    expect(fetchedObject.get('mySimpleProp')).toBe('foo');
+    expect(fetchedObject.get('myArrayProp')).toContain(1);
+
+    const modifiedObject = new MySubclass();
+    await modifiedObject.save({
+      mySimpleProp: 'bar',
+      myArrayProp: [7, 8, 9]
+    });
+    results = await Parse.Cloud.run('QuerySubclassObjects');
+    assert.notEqual(results.length, 0);
+
+    fetchedObject = results.find(item => item.objectId == modifiedObject.objectId);
+    expect(fetchedObject.get('mySimpleProp')).toBe('bar');
+    expect(fetchedObject.get('myArrayProp')).toContain(9);
+    done();
   });
 
   it('run function with user', (done) => {
